@@ -124,22 +124,35 @@ export type OutlookEmail = {
 export async function fetchInboxOwnerEmail(accessToken: string): Promise<string | null> {
   try {
     const client = getClient(accessToken)
-    // Sent Items is reliable — the `from` field is always the authenticated user
-    const response = await client
+
+    // Scan sent items for a valid SMTP address — Exchange accounts may return
+    // legacy X.500 DNs (/O=FIRST ORGANIZATION/...) which don't contain '@'
+    const sent = await client
       .api("/me/mailFolders/sentItems/messages")
-      .top(1)
+      .top(10)
       .select("from")
       .get() as { value?: Array<{ from?: { emailAddress?: { address?: string } } }> }
-    const email = response.value?.[0]?.from?.emailAddress?.address ?? null
-    if (email) return email
 
-    // Fallback: check toRecipients of inbox if sent items is empty
-    const fallback = await client
+    for (const msg of sent.value ?? []) {
+      const addr = msg.from?.emailAddress?.address
+      if (addr && addr.includes("@")) return addr
+    }
+
+    // Fallback: toRecipients on inbox messages
+    const inbox = await client
       .api("/me/messages")
-      .top(1)
+      .top(10)
       .select("toRecipients")
       .get() as { value?: Array<{ toRecipients?: Array<{ emailAddress?: { address?: string } }> }> }
-    return fallback.value?.[0]?.toRecipients?.[0]?.emailAddress?.address ?? null
+
+    for (const msg of inbox.value ?? []) {
+      for (const r of msg.toRecipients ?? []) {
+        const addr = r.emailAddress?.address
+        if (addr && addr.includes("@")) return addr
+      }
+    }
+
+    return null
   } catch {
     return null
   }
