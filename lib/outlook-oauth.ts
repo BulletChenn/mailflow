@@ -124,12 +124,22 @@ export type OutlookEmail = {
 export async function fetchInboxOwnerEmail(accessToken: string): Promise<string | null> {
   try {
     const client = getClient(accessToken)
+    // Sent Items is reliable — the `from` field is always the authenticated user
     const response = await client
+      .api("/me/mailFolders/sentItems/messages")
+      .top(1)
+      .select("from")
+      .get() as { value?: Array<{ from?: { emailAddress?: { address?: string } } }> }
+    const email = response.value?.[0]?.from?.emailAddress?.address ?? null
+    if (email) return email
+
+    // Fallback: check toRecipients of inbox if sent items is empty
+    const fallback = await client
       .api("/me/messages")
       .top(1)
       .select("toRecipients")
       .get() as { value?: Array<{ toRecipients?: Array<{ emailAddress?: { address?: string } }> }> }
-    return response.value?.[0]?.toRecipients?.[0]?.emailAddress?.address ?? null
+    return fallback.value?.[0]?.toRecipients?.[0]?.emailAddress?.address ?? null
   } catch {
     return null
   }
