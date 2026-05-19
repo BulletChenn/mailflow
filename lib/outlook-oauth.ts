@@ -22,17 +22,27 @@ export function getOAuthAuthorizeUrl(): string {
     redirect_uri: redirectUri,
     response_type: "code",
     scope:
-      "https://graph.microsoft.com/Mail.ReadWrite https://graph.microsoft.com/Mail.Send offline_access",
+      "openid email profile https://graph.microsoft.com/Mail.ReadWrite https://graph.microsoft.com/Mail.Send offline_access",
     response_mode: "query",
   })
 
   return `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?${params.toString()}`
 }
 
+function extractEmailFromIdToken(idToken: string): string | null {
+  try {
+    const payload = JSON.parse(Buffer.from(idToken.split(".")[1], "base64").toString("utf8"))
+    return payload.email || payload.preferred_username || payload.upn || null
+  } catch {
+    return null
+  }
+}
+
 export async function getAccessTokenFromCode(code: string): Promise<{
   access_token: string
   refresh_token?: string
   expires_in: number
+  user_email: string | null
 }> {
   if (!clientId || !clientSecret) {
     throw new Error("OUTLOOK_CLIENT_ID and OUTLOOK_CLIENT_SECRET are required")
@@ -63,6 +73,7 @@ export async function getAccessTokenFromCode(code: string): Promise<{
     access_token: data.access_token,
     refresh_token: data.refresh_token,
     expires_in: data.expires_in || 3600,
+    user_email: data.id_token ? extractEmailFromIdToken(data.id_token) : null,
   }
 }
 

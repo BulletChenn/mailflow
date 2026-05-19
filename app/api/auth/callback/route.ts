@@ -17,12 +17,13 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const { access_token, refresh_token, expires_in } = await getAccessTokenFromCode(code)
+    const { access_token, refresh_token, expires_in, user_email } = await getAccessTokenFromCode(code)
 
     const tokenData = JSON.stringify({
       accessToken: access_token,
       refreshToken: refresh_token,
       expiresAt: Date.now() + expires_in * 1000,
+      userEmail: user_email,
     })
 
     await saveDraft("__auth_token__", tokenData)

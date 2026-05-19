@@ -99,6 +99,7 @@ export async function getAuthToken() {
       accessToken: string
       refreshToken?: string
       expiresAt: number
+      userEmail?: string | null
     }
   } catch {
     return null
