@@ -114,6 +114,23 @@ data/              # Local runtime storage (gitignored)
 
 ---
 
+## Deploy to Vercel
+
+### 1. Create an Upstash Redis database
+1. Go to [upstash.com](https://upstash.com) → Sign up → Redis → Create Database
+2. Copy the **REST URL** and **REST Token** from the database dashboard
+
+### 2. Deploy
+1. Go to [vercel.com](https://vercel.com) → Add New Project → Import `mailflow` from GitHub
+2. Under **Environment Variables**, add all variables from `.env.example` including the two Upstash ones
+3. Set `OUTLOOK_REDIRECT_URI` to your Vercel URL: `https://your-app.vercel.app/api/auth/callback`
+4. Add that same URL to your Azure app registration → Authentication → Redirect URIs
+5. Click **Deploy**
+
+> **Local development** does not require Upstash — it falls back to a local `data/storage.json` file automatically.
+
+---
+
 ## Security
 
 - `.env.local` is gitignored — never committed

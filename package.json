@@ -12,6 +12,7 @@
     "@anthropic-ai/sdk": "^0.92.0",
     "@microsoft/microsoft-graph-client": "^3.0.7",
     "@types/better-sqlite3": "^7.6.13",
+    "@upstash/redis": "^1.38.0",
     "better-sqlite3": "^12.9.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
