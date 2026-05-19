@@ -30,8 +30,12 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files — exclude all except the example template
 .env*
+!.env.example
+
+# local data — contains encrypted session tokens, never commit
+/data/
 
 # vercel
 .vercel
